@@ -1,0 +1,5 @@
+{"version": 2, "width": 80, "height": 24, "timestamp": 160000, "env": {"TERM": "xterm-256color", "SHELL": "/bin/bash"}}
+[0.0, "o", "Welcome to asciinema demo\\r\\n"]
+[1.0, "o", "This is a simple demo\\r\\n"]
+[2.0, "o", "For testing mdp integration\\r\\n"]
+[3.0, "o", "Press any key to exit\\r\\n"]

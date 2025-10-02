@@ -22,7 +22,7 @@
  */
 
 #include <ctype.h>  // isalnum
-#include <wchar.h>  // wcschr
+#include <wchar.h>  // wcschr, wcsstr
 #include <wctype.h> // iswalnum
 #include <string.h> // strcpy
 #include <unistd.h> // usleep
@@ -427,6 +427,52 @@ int ncurses_display(deck_t *deck, int notrans, int nofade, int invert, int reloa
                         sc++;
                 }
             }
+        } else if (evaluate_binding(asciinema_binding, c)) {
+            // asciinema playback
+            // Find if there's an asciinema tag on the current slide
+            line_t *current_line = slide->line;
+            int found_asciinema = 0;
+            while(current_line && !found_asciinema) {
+                if(current_line->text && current_line->text->value) {
+                    const wchar_t *pos = wcsstr(current_line->text->value, L"[asciinema:");
+                    if(pos) {
+                        // Extract filename from [asciinema:cols:rows:filename]
+                        const wchar_t *start = wcschr(pos, L':');
+                        if(start) start = wcschr(start + 1, L':');
+                        if(start) start = wcschr(start + 1, L':');
+                        if(start) {
+                            start++; // Move past the last ':'
+                            const wchar_t *end = wcschr(start, L']');
+                            if(end) {
+                                // Extract the filename
+                                size_t len = end - start;
+                                char *filename = malloc((len + 1) * sizeof(char));
+                                for(size_t i = 0; i < len; i++) {
+                                    filename[i] = (char)start[i];
+                                }
+                                filename[len] = '\0';
+                                
+                                // Suspend ncurses and run asciinema
+                                endwin();
+                                char command[512];
+                                snprintf(command, sizeof(command), "asciinema play '%s'", filename);
+                                system(command);
+                                
+                                // Reinitialize ncurses
+                                refresh();
+                                
+                                free(filename);
+                                found_asciinema = 1;
+                            }
+                        }
+                    }
+                }
+                current_line = current_line->next;
+            }
+            if(!found_asciinema) {
+                // No asciinema tag found, disable fading
+                fade = false;
+            }
         } else if (evaluate_binding(reload_binding, c)) {
             // reload
             if(noreload == 0) {
@@ -736,8 +782,23 @@ void inline_display(WINDOW *window, const wchar_t *c, const int colors, int noco
                    iswspace(*(i - 1)) ||
                    *(i - 1) == L'*' || *(i - 1) == L'_') {
 
+                    // asciinema syntax [asciinema:cols:rows:filename]
+                    if (*i == L'[' && wcsncmp(i, L"[asciinema:", 11) == 0) {
+                        const wchar_t *end_bracket = wcschr(i, L']');
+                        if (end_bracket) {
+                            // Print asciinema placeholder
+                            wattron(window, COLOR_PAIR(CP_BLUE));
+                            wattron(window, A_UNDERLINE);
+                            waddwstr(window, L"[ASCIINEMA]");
+                            wattroff(window, A_UNDERLINE);
+                            wattron(window, COLOR_PAIR(CP_WHITE));
+                            i = end_bracket; // Move to end bracket
+                        } else {
+                            waddnwstr(window, i, 1);
+                        }
+                    }
                     // url in pandoc style
-                    if ((*i == L'[') || (*i == L'!' && *(i + 1) && *(i + 1) == L'[')) {
+                    else if ((*i == L'[') || (*i == L'!' && *(i + 1) && *(i + 1) == L'[')) {
                         label_start = (*i == L'!') ? i + 2 : i + 1;
                         label_end = url_find_closing_bracket(label_start);
                         url_start = NULL;

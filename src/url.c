@@ -166,7 +166,16 @@ int url_count_inline(const wchar_t *line) {
         if (*i == '\\') {
             if (*(i + 1)) i++;
         } else if (*i == '[') {
-            if (*(i+1) && *(i+1) != ']') {
+            // Check for asciinema syntax [asciinema:cols:rows:filename]
+            if (wcsncmp(i, L"[asciinema:", 11) == 0) {
+                count++;
+                const wchar_t *end_bracket = wcschr(i, L']');
+                if (end_bracket) {
+                    i = end_bracket;
+                } else {
+                    i++;
+                }
+            } else if (*(i+1) && *(i+1) != ']') {
                 i++;
                 while (*i && *i != ']') i++;
                 if (*i == ']') {
@@ -192,7 +201,16 @@ int url_len_inline(const wchar_t *value) {
         if (*i == '\\') {
             if (*(i + 1)) i++;
         } else if (*i == '[') {
-            if (*(i+1) && *(i+1) != ']') {
+            // Check for asciinema syntax [asciinema:cols:rows:filename]
+            if (wcsncmp(i, L"[asciinema:", 11) == 0) {
+                const wchar_t *end_bracket = wcschr(i, L']');
+                if (end_bracket) {
+                    count += end_bracket - i + 1; // Include the bracket
+                    i = end_bracket;
+                } else {
+                    i++;
+                }
+            } else if (*(i+1) && *(i+1) != ']') {
                 while (*i && *i != ']') i++;
                 if (*i == ']') {
                     i++;

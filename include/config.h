@@ -125,6 +125,10 @@ static const int reload_binding[] = {
     'r',
     0
 };
+static const int asciinema_binding[] = {
+    'a',
+    0
+};
 static const int quit_binding[] = {
     'q',
     0
