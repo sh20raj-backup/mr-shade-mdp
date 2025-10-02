@@ -730,14 +730,11 @@ void inline_display(WINDOW *window, const wchar_t *c, const int colors, int noco
             // opening special char
             } else {
 
-                // emphasis or code span can start after new-line or space only
-                // and of cause after another emphasis markup
-                //TODO this condition looks ugly
-                if(i == c ||
+                // emphasis or code span can start after whitespace, emphasis markup, or at start of line
+                // also allow after escaped characters
+                if(i == c || *i == L'\\' ||
                    iswspace(*(i - 1)) ||
-                   ((iswspace(*(i - 1)) || *(i - 1) == L'*' || *(i - 1) == L'_') &&
-                    ((i - 1) == c || iswspace(*(i - 2)))) ||
-                   *i == L'\\') {
+                   *(i - 1) == L'*' || *(i - 1) == L'_') {
 
                     // url in pandoc style
                     if ((*i == L'[') || (*i == L'!' && *(i + 1) && *(i + 1) == L'[')) {
