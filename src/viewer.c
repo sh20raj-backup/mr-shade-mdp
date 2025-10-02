@@ -682,8 +682,10 @@ void add_line(WINDOW *window, int y, int x, line_t *line, int max_cols, int colo
                 }
             }
 
-            // IS_H1 || IS_H2
-            if(CHECK_BIT(line->bits, IS_H1) || CHECK_BIT(line->bits, IS_H2)) {
+            // IS_H1 || IS_H2 || IS_H3 || IS_H4 || IS_H5 || IS_H6
+            if(CHECK_BIT(line->bits, IS_H1) || CHECK_BIT(line->bits, IS_H2) ||
+               CHECK_BIT(line->bits, IS_H3) || CHECK_BIT(line->bits, IS_H4) ||
+               CHECK_BIT(line->bits, IS_H5) || CHECK_BIT(line->bits, IS_H6)) {
 
                 // set headline color
                 if(colors)
@@ -692,6 +694,26 @@ void add_line(WINDOW *window, int y, int x, line_t *line, int max_cols, int colo
                 // enable underline for H1
                 if(CHECK_BIT(line->bits, IS_H1))
                     wattron(window, A_UNDERLINE);
+                
+                // enable bold for H2
+                if(CHECK_BIT(line->bits, IS_H2))
+                    wattron(window, A_BOLD);
+                
+                // enable dim for H3
+                if(CHECK_BIT(line->bits, IS_H3))
+                    wattron(window, A_DIM);
+                
+                // enable standout for H4 (inverse video)
+                if(CHECK_BIT(line->bits, IS_H4))
+                    wattron(window, A_STANDOUT);
+                
+                // enable reverse for H5
+                if(CHECK_BIT(line->bits, IS_H5))
+                    wattron(window, A_REVERSE);
+                
+                // enable italic for H6 (if supported)
+                if(CHECK_BIT(line->bits, IS_H6))
+                    wattron(window, A_ITALIC);
 
                 // skip hashes
                 while(line->text->value[offset] == '#')
@@ -700,7 +722,8 @@ void add_line(WINDOW *window, int y, int x, line_t *line, int max_cols, int colo
                 // print whole lines
                 waddwstr(window, &line->text->value[offset]);
 
-                wattroff(window, A_UNDERLINE);
+                // turn off all attributes
+                wattroff(window, A_UNDERLINE | A_BOLD | A_DIM | A_STANDOUT | A_REVERSE | A_ITALIC);
 
             // no line-wide markdown
             } else {

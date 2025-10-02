@@ -634,6 +634,48 @@ int markdown_analyse(cstring_t *text, int prev) {
                 SET_BIT(bits, IS_H2_ATX);
             }
 
+            // IS_H3
+            if(text->value[offset] == L'#' &&
+               text->value[offset+1] == L'#' &&
+               text->value[offset+2] == L'#' &&
+               iswspace(text->value[offset+3])) {
+                SET_BIT(bits, IS_H3);
+                SET_BIT(bits, IS_H3_ATX);
+            }
+
+            // IS_H4
+            if(text->value[offset] == L'#' &&
+               text->value[offset+1] == L'#' &&
+               text->value[offset+2] == L'#' &&
+               text->value[offset+3] == L'#' &&
+               iswspace(text->value[offset+4])) {
+                SET_BIT(bits, IS_H4);
+                SET_BIT(bits, IS_H4_ATX);
+            }
+
+            // IS_H5
+            if(text->value[offset] == L'#' &&
+               text->value[offset+1] == L'#' &&
+               text->value[offset+2] == L'#' &&
+               text->value[offset+3] == L'#' &&
+               text->value[offset+4] == L'#' &&
+               iswspace(text->value[offset+5])) {
+                SET_BIT(bits, IS_H5);
+                SET_BIT(bits, IS_H5_ATX);
+            }
+
+            // IS_H6
+            if(text->value[offset] == L'#' &&
+               text->value[offset+1] == L'#' &&
+               text->value[offset+2] == L'#' &&
+               text->value[offset+3] == L'#' &&
+               text->value[offset+4] == L'#' &&
+               text->value[offset+5] == L'#' &&
+               iswspace(text->value[offset+6])) {
+                SET_BIT(bits, IS_H6);
+                SET_BIT(bits, IS_H6_ATX);
+            }
+
             // IS_HR
             if((minus >= 3 && equals + hashes + stars + other == 0) ||
                (stars >= 3 && equals + hashes + minus + other == 0)) {
@@ -822,6 +864,14 @@ void adjust_line_length(line_t *line) {
         l -= 2;
     if(CHECK_BIT(line->bits, IS_H2_ATX))
         l -= 3;
+    if(CHECK_BIT(line->bits, IS_H3_ATX))
+        l -= 4;
+    if(CHECK_BIT(line->bits, IS_H4_ATX))
+        l -= 5;
+    if(CHECK_BIT(line->bits, IS_H5_ATX))
+        l -= 6;
+    if(CHECK_BIT(line->bits, IS_H6_ATX))
+        l -= 7;
 
     line->length = l;
 
